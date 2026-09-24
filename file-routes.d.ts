@@ -33,15 +33,15 @@ declare module "virtual:file-routes" {
   /** The flat route manifest, in scan order. */
   const routes: readonly [
     {
-      path: "/Rules";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/Rules")>;
-      $$route?: undefined;
-    },
-    {
       path: "/Cards";
       page: true;
       $component: FileRouteLazyRef<typeof import("./src/routes/Cards")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/Rules";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/Rules")>;
       $$route?: undefined;
     }
   ];
@@ -50,18 +50,18 @@ declare module "virtual:file-routes" {
   /** The page entries, nested by path with grouping segments stripped. */
   export const pageRoutes: readonly [
     {
-      path: "/Rules";
-      id: "/Rules";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/Rules")>;
-      $$route?: undefined;
-      children?: undefined;
-    },
-    {
       path: "/Cards";
       id: "/Cards";
       page: true;
       $component: FileRouteLazyRef<typeof import("./src/routes/Cards")>;
+      $$route?: undefined;
+      children?: undefined;
+    },
+    {
+      path: "/Rules";
+      id: "/Rules";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/Rules")>;
       $$route?: undefined;
       children?: undefined;
     }

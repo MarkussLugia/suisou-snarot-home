@@ -1,9 +1,5 @@
+@import url("https://fontsapi.zeoseven.com/628/main/result.css");
 @import "tailwindcss";
-
-@font-face {
-  font-family: "USMCCyuanjiantecu";
-  src: local("USMCCyuanjiantecu"), url("USMCCyuanjiantecu.otf");
-}
 
 .font-usmcc-serif {
   font-family: USMCCyuanjiantecu;
