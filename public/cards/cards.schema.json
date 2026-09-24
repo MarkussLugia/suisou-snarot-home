@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SlugBoard Card Data",
+  "type": "object",
+  "properties": {
+    "list": {
+      "title": "Card List",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "卡牌的名称。"
+          },
+          "desc": {
+            "type": "string",
+            "title": "<可选> 卡牌的描述文本。"
+          },
+          "illust": {
+            "type": "string",
+            "title": "卡牌的画师。"
+          },
+          "img": {
+            "type": "string",
+            "title": "指向卡牌高清图片的相对路径。",
+            "examples": ["/preset/star.png"]
+          },
+          "thu": {
+            "type": "string",
+            "title": "指向卡牌网页缩略图的相对路径。",
+            "examples": ["/member/crealine_thumb.webp"]
+          },
+          "number": {
+            "type": "integer",
+            "title": "卡牌的数字。0 代表当前卡牌没有数字。",
+            "enum": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+          },
+          "prevColor": {
+            "type": "string",
+            "title": "能够匹配上一张卡牌的颜色。\"u\"代表允许所有颜色。",
+            "enum": ["r", "g", "b", "y", "u"]
+          },
+          "nextColor": {
+            "type": "string",
+            "title": "要求匹配下一张卡牌的颜色。\"u\"代表允许所有颜色。",
+            "enum": ["r", "g", "b", "y", "u"]
+          },
+          "addToTower": {
+            "type": "boolean",
+            "title": "打出后，将此卡牌加入巨塔。"
+          },
+          "reverse": {
+            "type": "boolean",
+            "title": "打出后，反转出牌顺序。"
+          },
+          "clearAttack": {
+            "type": "boolean",
+            "title": "打出后，清除自身未生效的抽卡预言。"
+          },
+          "disable": {
+            "type": "boolean",
+            "title": "打出后，下一位玩家的出牌将被跳过一次。"
+          },
+          "attackDraw": {
+            "type": "integer",
+            "title": "打出后，对下一位玩家附加抽卡预言。0 代表不启用。"
+          },
+          "attackDelay": {
+            "type": "integer",
+            "title": "对下一位玩家附加抽卡预言的延迟回合。0 代表立即生效。"
+          },
+          "selfDraw": {
+            "type": "integer",
+            "title": "打出后，对当前玩家进行抽卡惩罚。"
+          },
+          "collapse": {
+            "type": "boolean",
+            "title": "打出后，开始巨塔崩塌环节。"
+          }
+        },
+        "required": [
+          "name",
+          "illust",
+          "img",
+          "thu",
+          "number",
+          "prevColor",
+          "nextColor",
+          "addToTower",
+          "reverse",
+          "clearAttack",
+          "disable",
+          "attackDraw",
+          "attackDelay",
+          "selfDraw",
+          "collapse"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}
