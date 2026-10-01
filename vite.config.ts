@@ -1,5 +1,4 @@
 import tailwindcss from "@tailwindcss/vite";
-import { fileRoutes } from "filesystem-routing/vite";
 import { defineConfig, lazyPlugins } from "vite-plus";
 import solid from "@solidjs/vite-plugin";
 
@@ -17,7 +16,6 @@ export default defineConfig({
     // `extensions` makes @solidjs/vite-plugin also compile the `?pick=` route
     // modules the fileRoutes plugin emits (their ids end in a query string).
     solid({ start: true, extensions: [".jsx", ".tsx"], diagnostics: true }), // add `ssr: true` for streaming SSR
-    fileRoutes({ types: true }),
     tailwindcss(),
   ]),
   server: {
