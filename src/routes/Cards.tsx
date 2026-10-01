@@ -119,10 +119,11 @@ export default function Cards() {
         <div class="text-3xl lg:text-2xl text-sky-500 pl-0 sm:pl-0.5 pt-12 lg:pt-8">
           在丰盛的晚宴与舞会后、宝可梦们来到一个放映厅，你们从未见过这般美丽扭曲的外在。
           <br class="hidden lg:inline" />
-          海中的贵人们触手捧着红色的、像是好啦鱿的活体机器……
+          海中的贵人们用触手捧着红色的、像是好啦鱿的活体机器……
         </div>
         <div class="text-4xl lg:text-4xl text-sky-500 pl-0 sm:pl-0.5 pb-8 pt-8 lg:pb-16 lg:pt-0">
-          海水斑驳光线的交错中，<span class="text-sky-100">你们灵魂的形状变成卡片。</span>
+          海水斑驳光线的交错中，
+          <span class="text-sky-100">你们灵魂的形状变成卡片。</span>
         </div>
       </div>
       <For each={sections}>
@@ -141,7 +142,7 @@ export default function Cards() {
 function SlugCardGrid(props: { data: SlugCardJSON; title: string }) {
   return (
     <div class="text-left w-full box-border px-2 sm:px-0">
-      <div class="text-5xl px-2 sm:px-1 py-6 text-left w-full inline-block">{props.title}</div>
+      <h2 class="text-5xl px-2 sm:px-1 py-6 text-left w-full inline-block">{props.title}</h2>
       <For each={props.data.list}>{(card) => <SlugCardThumb src={cardBaseURL + card.thu} />}</For>
     </div>
   );
@@ -155,10 +156,7 @@ function SlugCardThumb(props: { src: string }) {
       style={{ rotate: loaded() ? `${Math.random() * 4 - 2}deg` : "0deg" }}
     >
       <img
-        class={[
-          "w-full transition-opacity duration-300",
-          { "opacity-100": loaded(), "opacity-0": !loaded() },
-        ]}
+        class={["w-full transition-opacity duration-300", { "opacity-100": loaded(), "opacity-0": !loaded() }]}
         src={props.src}
         onLoad={() => setLoaded(true)}
         loading="lazy"
