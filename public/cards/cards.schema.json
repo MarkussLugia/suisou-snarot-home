@@ -36,15 +36,15 @@
             "title": "卡牌的数字。0 代表当前卡牌没有数字。",
             "enum": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
           },
-          "prevColor": {
+          "applyColor": {
             "type": "string",
-            "title": "能够匹配上一张卡牌的颜色。\"u\"代表允许所有颜色。",
+            "title": "能够匹配的场地颜色。\"u\"代表此卡牌出牌不受颜色限制。",
             "enum": ["r", "g", "b", "y", "u"]
           },
-          "nextColor": {
+          "updateColor": {
             "type": "string",
-            "title": "要求匹配下一张卡牌的颜色。\"u\"代表允许所有颜色。",
-            "enum": ["r", "g", "b", "y", "u"]
+            "title": "此卡牌更新的场地颜色。\"s\"代表由出牌者指定更新的颜色，\"n\"代表此卡牌不更新颜色。",
+            "enum": ["r", "g", "b", "y", "s", "n"]
           },
           "addToTower": {
             "type": "boolean",
@@ -85,8 +85,8 @@
           "img",
           "thu",
           "number",
-          "prevColor",
-          "nextColor",
+          "applyColor",
+          "updateColor",
           "addToTower",
           "reverse",
           "clearAttack",
