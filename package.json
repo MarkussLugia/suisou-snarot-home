@@ -1,42 +1,35 @@
 {
-  "name": "example-with-tailwindcss",
-  "version": "0.0.0",
+  "name": "suisou-slugboard",
+  "version": "0.2.0",
   "description": "",
-  "license": "MIT",
   "type": "module",
   "scripts": {
-    "start": "vp dev",
     "dev": "vp dev",
     "build": "vp build",
     "serve": "vp preview",
-    "test": "vp test",
     "lint": "vp lint src"
   },
-  "dependencies": {
-    "@solidjs/meta": "^1.0.0-next.2",
-    "@solidjs/router": "^2.0.0-next.26",
-    "@solidjs/web": "^2.0.0-rc.9",
-    "solid-js": "^2.0.0-rc.9"
-  },
+  "license": "MIT",
   "devDependencies": {
-    "@solidjs/diagnostics": "^2.0.0-rc.9",
-    "@solidjs/testing-library": "^1.0.0-beta.3",
-    "@solidjs/vite-plugin": "^3.0.0-next.44",
-    "@tailwindcss/vite": "^4.1.13",
-    "@testing-library/jest-dom": "^7.0.0",
-    "eslint-plugin-solid": "~0.18.0",
-    "filesystem-routing": "0.3.0",
-    "jsdom": "^25.0.1",
-    "tailwindcss": "^4.1.13",
-    "typescript": "^5.9.2",
+    "@solidjs/diagnostics": "^2.0.0",
+    "@solidjs/vite-plugin": "^3.0.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "eslint-plugin-solid": "~0.20.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2",
     "vite": "catalog:",
-    "vite-plus": "catalog:",
-    "vitest": "catalog:"
+    "vite-plus": "catalog:"
+  },
+  "dependencies": {
+    "@solidjs/meta": "^2.0.0",
+    "@solidjs/router": "^2.0.0",
+    "@solidjs/web": "^2.0.0",
+    "solid-js": "^2.0.0"
   },
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "12.4.2",
+      "version": "12.21.0",
       "onFail": "download"
     }
   }
