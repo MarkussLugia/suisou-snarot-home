@@ -1,5 +1,7 @@
+import { createSwitchTransition } from "@solid-primitives/transition-group";
 import { Title } from "@solidjs/meta";
-import { createMemo, createSignal, For, Loading, SourceAccessor } from "solid-js";
+import { JSX } from "@solidjs/web/types/index.server.js";
+import { children, createMemo, createSignal, For, Loading, Show, SourceAccessor } from "solid-js";
 
 /** 单张卡牌数据定义 */
 export interface SlugCard {
@@ -107,60 +109,159 @@ export default function Cards() {
       data: cardPlayerData,
     },
   ];
-  return (
-    <main class="text-sky-200 font-usmcc-serif flex flex-col justify-center items-center relative z-0 pt-24">
-      <Title>牌库 - 塔螺牌</Title>
 
-      <div class="text-left w-full sm:w-xl lg:w-252 px-4 sm:px-2 lg:px-0">
-        <div class="text-7xl lg:text-9xl text-sky-300 pt-8 sm:pt-20 lg:pt-24">
-          塔螺牌
-          <span class="text-4xl sm:text-7xl lg:text-9xl"> 牌库</span>
-        </div>
-        <div class="text-3xl lg:text-2xl text-sky-500 pl-0 sm:pl-0.5 pt-12 lg:pt-8">
-          在丰盛的晚宴与舞会后、宝可梦们来到一个放映厅，你们从未见过这般美丽扭曲的外在。
-          <br class="hidden lg:inline" />
-          海中的贵人们用触手捧着红色的、像是好啦鱿的活体机器……
-        </div>
-        <div class="text-4xl lg:text-4xl text-sky-500 pl-0 sm:pl-0.5 pb-8 pt-8 lg:pb-16 lg:pt-0">
-          海水斑驳光线的交错中，
-          <span class="text-sky-100">你们灵魂的形状变成卡片。</span>
-        </div>
-      </div>
-      <For each={sections}>
-        {(item) => (
-          <div class="box-border w-full sm:w-xl lg:w-252">
-            <Loading fallback={<div class="text-sky-300 opacity-50 my-32">加载中</div>}>
-              <SlugCardGrid data={item.data()} title={item.title} />
-            </Loading>
+  const [showDetail, setShowDetail] = createSignal<boolean>(false);
+  const [detailCard, setDetailCard] = createSignal<SlugCard | null>(null);
+  return (
+    <div class="w-screen h-screen overflow-y-scroll">
+      <OpacityTransition>
+        <Show when={showDetail() && detailCard() != null}>
+          <SlugCardDetail
+            data={detailCard() as SlugCard}
+            onClose={() => setShowDetail(false)}
+          ></SlugCardDetail>
+        </Show>
+      </OpacityTransition>
+      <main class="text-sky-200 font-usmcc-serif flex flex-col justify-center items-center z-0 pt-24">
+        <Title>牌库 - 塔螺牌</Title>
+
+        <div class="text-left w-full sm:w-xl lg:w-252 px-4 sm:px-2 lg:px-0">
+          <div class="text-7xl lg:text-9xl text-sky-300 pt-8 sm:pt-20 lg:pt-24">
+            塔螺牌
+            <span class="text-4xl sm:text-7xl lg:text-9xl"> 牌库</span>
           </div>
-        )}
-      </For>
-    </main>
-  );
-}
-
-function SlugCardGrid(props: { data: SlugCardJSON; title: string }) {
-  return (
-    <div class="text-left w-full box-border px-2 sm:px-0">
-      <h2 class="text-5xl px-2 sm:px-1 py-6 text-left w-full inline-block">{props.title}</h2>
-      <For each={props.data.list}>{(card) => <SlugCardThumb src={cardBaseURL + card.thu} />}</For>
+          <div class="text-3xl lg:text-2xl text-sky-500 pl-0 sm:pl-0.5 pt-12 lg:pt-8">
+            在丰盛的晚宴与舞会后、宝可梦们来到一个放映厅，你们从未见过这般美丽扭曲的外在。
+            <br class="hidden lg:inline" />
+            海中的贵人们用触手捧着红色的、像是好啦鱿的活体机器……
+          </div>
+          <div class="text-4xl lg:text-4xl text-sky-500 pl-0 sm:pl-0.5 pb-8 pt-8 lg:pb-16 lg:pt-0">
+            海水斑驳光线的交错中，
+            <span class="text-sky-100">你们灵魂的形状变成卡片。</span>
+          </div>
+        </div>
+        <For each={sections}>
+          {(item) => (
+            <div class="box-border w-full sm:w-xl lg:w-252">
+              <Loading fallback={<div class="text-sky-300 opacity-50 my-32">加载中</div>}>
+                <SlugCardGrid
+                  onViewCard={(card) => {
+                    setDetailCard(card);
+                    setShowDetail(true);
+                  }}
+                  data={item.data()}
+                  title={item.title}
+                  viewing={showDetail() ? detailCard() : null}
+                />
+              </Loading>
+            </div>
+          )}
+        </For>
+      </main>
     </div>
   );
 }
 
-function SlugCardThumb(props: { src: string }) {
+function SlugCardGrid(props: {
+  data: SlugCardJSON;
+  title: string;
+  onViewCard: (card: SlugCard) => void;
+  viewing: SlugCard | null;
+}) {
+  return (
+    <div class="text-left w-full box-border px-2 sm:px-0">
+      <h2 class="text-5xl px-2 sm:px-1 py-6 text-left w-full inline-block">{props.title}</h2>
+      <For each={props.data.list}>
+        {(card) => (
+          <SlugCardThumb
+            onClick={() => props.onViewCard(card)}
+            src={cardBaseURL + card.thu}
+            showing={props.viewing == card}
+          />
+        )}
+      </For>
+    </div>
+  );
+}
+
+function SlugCardThumb(props: { src: string; onClick: () => void; showing: boolean }) {
   let [loaded, setLoaded] = createSignal(false);
+  let [rotate, _setRotate] = createSignal(Math.random() * 4 - 2);
   return (
     <div
-      class="aspect-360/618 w-[calc(25%-0.5rem)] mx-1 sm:w-32 sm:mx-2 sm:my-2.5 overflow-hidden rounded-sm bg-[#c7c8b6] inline-block text-[0px] transition-transform duration-500 ease-out"
-      style={{ rotate: loaded() ? `${Math.random() * 4 - 2}deg` : "0deg" }}
+      class={[
+        "aspect-360/618 w-[calc(25%-0.5rem)] mx-1 sm:w-32 sm:mx-2 sm:my-2.5 overflow-hidden rounded-sm bg-[#c7c8b6] inline-block text-[0px] transition-[scale,rotate,opacity] duration-500 scale-100 opacity-100 ease-out origin-center cursor-pointer",
+        { "scale-110 opacity-0": props.showing },
+      ]}
+      style={{ rotate: loaded() ? `${rotate()}deg` : "0deg" }}
+      onClick={() => props.onClick()}
     >
       <img
-        class={["w-full transition-opacity duration-300", { "opacity-100": loaded(), "opacity-0": !loaded() }]}
+        class={[
+          "w-full transition-opacity duration-300",
+          { "opacity-100": loaded(), "opacity-0": !loaded() },
+        ]}
         src={props.src}
         onLoad={() => setLoaded(true)}
         loading="lazy"
       ></img>
+    </div>
+  );
+}
+
+function OpacityTransition(props: { children?: JSX.Element }) {
+  const node = createMemo(() => {
+    const list = children(() => props.children)();
+    return list as HTMLElement;
+  });
+
+  const rendered = createSwitchTransition(node, {
+    mode: "out-in",
+    onEnter(el, done) {
+      queueMicrotask(() => {
+        el.animate([{ opacity: 0 }, { opacity: 1 }], 300)
+          .finished.then(done)
+          .catch(done);
+      });
+    },
+    onExit(el, done) {
+      el.animate([{ opacity: 1 }, { opacity: 0 }], 150)
+        .finished.then(done)
+        .catch(done);
+    },
+  });
+
+  return <>{rendered()}</>;
+}
+
+function SlugCardDetail(props: { data: SlugCard; onClose: () => void }) {
+  const fullImageLink = createMemo(() => cardBaseURL + props.data.img);
+  return (
+    <div class="fixed font-usmcc-serif text-sky-200 left-0 top-0 overflow-y-scroll sm:overflow-y-hidden w-screen h-screen backdrop-blur-2xl backdrop-brightness-75 flex flex-col justify-center items-center bg-[rgba(8,24,48,0.5)] z-90 sm:z-10 overscroll-none px-8 lg:px-0">
+      <div class="w-full lg:w-252 justify-center items-center flex flex-col sm:flex-row flex-nowrap relative">
+        <div class="aspect-360/618 w-3/4 sm:w-auto sm:h-96 lg:h-128 my-16 sm:my-0 mx-8 lg:mx-16 relative grow-0 shrink-0 overflow-hidden rounded-lg">
+          <div
+            class="w-full h-full bg-cover"
+            style={{
+              "background-image": `url(${fullImageLink()})`,
+            }}
+          ></div>
+        </div>
+        <div class="w-full sm:w-auto sm:h-full sm:grow text-left pt-8 px-4 sm:px-0">
+          <div>
+            <p class="text-4xl lg:text-5xl lg:pb-2">{props.data.name}</p>
+            <p class="text-xl font-sans italic">illust. {props.data.illust}</p>
+          </div>
+        </div>
+        <div class="flex flex-row justify-end w-full lg:w-252 sm:absolute mb-8 sm:mb-0 bottom-0 left-0">
+          <div
+            class="text-2xl cursor-pointer px-5 py-3 border-sky-300 text-sky-300 hover:border-sky-200 hover:text-sky-200 transition-colors border-solid border-2 rounded-4xl"
+            onClick={() => props.onClose()}
+          >
+            关闭
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

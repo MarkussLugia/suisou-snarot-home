@@ -1,7 +1,9 @@
-import { Loading } from "solid-js";
+import { children, createMemo, Loading } from "solid-js";
 import { paths, Router } from "./router";
 import { useLocation } from "@solidjs/router";
 import "./App.css";
+import { createSwitchTransition } from "@solid-primitives/transition-group";
+import { JSX } from "@solidjs/web";
 
 function NavTab(props: { href: string; title: string }) {
   const location = useLocation();
@@ -46,6 +48,31 @@ function NavTab(props: { href: string; title: string }) {
   );
 }
 
+export function RouteTransition(props: { children?: JSX.Element }) {
+  const node = createMemo(() => {
+    const list = children(() => props.children)();
+    return (<div>{list}</div>) as HTMLDivElement;
+  });
+
+  const rendered = createSwitchTransition(node, {
+    mode: "out-in",
+    onEnter(el, done) {
+      queueMicrotask(() => {
+        el.animate([{ opacity: 0 }, { opacity: 1 }], 300)
+          .finished.then(done)
+          .catch(done);
+      });
+    },
+    onExit(el, done) {
+      el.animate([{ opacity: 1 }, { opacity: 0 }], 150)
+        .finished.then(done)
+        .catch(done);
+    },
+  });
+
+  return <>{rendered()}</>;
+}
+
 export default function App() {
   return (
     <Router>
@@ -55,7 +82,9 @@ export default function App() {
             <NavTab href={paths.cards()} title="卡牌" />
             <NavTab href={paths.rules()} title="规则" />
           </nav>
-          <Loading fallback={<main class="px-4 py-12">Loading…</main>}>{props.children}</Loading>
+          <Loading fallback={<main class="px-4 py-12">Loading…</main>}>
+            <RouteTransition>{props.children}</RouteTransition>
+          </Loading>
         </>
       )}
     </Router>
