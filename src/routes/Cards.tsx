@@ -226,7 +226,11 @@ function SlugCardThumb(props: { src: string; onClick: () => void; showing: boole
 }
 
 function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: boolean }) {
-  const cardImage = createMemo(() => `url(${cardBaseURL + props.data.img})`);
+  const cardThumb = createMemo(() => `#c7c8b6,url(${cardBaseURL + props.data.thu})`);
+  const cardImageEl = createMemo(() => {
+    const img_url = cardBaseURL + props.data.img;
+    return <img class="h-full" src={img_url}></img>;
+  });
   return (
     <div
       id="card-detail-bg"
@@ -256,9 +260,11 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
             <div
               class="w-full h-full bg-cover"
               style={{
-                "background-image": cardImage(),
+                "background-image": cardThumb(),
               }}
-            ></div>
+            >
+              {cardImageEl()}
+            </div>
           </div>
         </div>
         <div class="font-usmcc-serif text-sky-200 w-full sm:w-auto sm:h-full sm:grow text-left pt-0 sm:pt-4 pb-4 sm:pb-0 lg:pt-8 px-8 sm:px-0">
