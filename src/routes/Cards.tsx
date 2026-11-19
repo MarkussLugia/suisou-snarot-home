@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { createMemo, createSignal, For, Loading, SourceAccessor } from "solid-js";
-import snarot_logo_laser from "/src/routes/snarot_logo_laser.png";
+import snarot_logo_laser from "/src/routes/snarot_logo_laser.webp";
 
 /** 单张卡牌数据定义 */
 export interface SlugCard {
