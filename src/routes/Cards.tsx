@@ -1,7 +1,5 @@
-import { createSwitchTransition } from "@solid-primitives/transition-group";
 import { Title } from "@solidjs/meta";
-import { JSX } from "@solidjs/web/types/index.server.js";
-import { children, createMemo, createSignal, For, Loading, Show, SourceAccessor } from "solid-js";
+import { createMemo, createSignal, For, Loading, SourceAccessor } from "solid-js";
 
 /** 单张卡牌数据定义 */
 export interface SlugCard {
@@ -91,6 +89,24 @@ const slugCardBasic = new CardJSONLoader("./cards_basic.json");
 const slugCardNPC = new CardJSONLoader("./cards_npc.json");
 const slugCardPlayer = new CardJSONLoader("./cards_player.json");
 
+const placeholderCard: SlugCard = {
+  name: "",
+  illust: "",
+  img: "",
+  thu: "",
+  number: 0,
+  applyColor: "u",
+  updateColor: "n",
+  addToTower: false,
+  reverse: false,
+  clearAttack: false,
+  disable: false,
+  attackDraw: 0,
+  attackDelay: 0,
+  selfDraw: 0,
+  collapse: false,
+};
+
 export default function Cards() {
   const cardBasicData = createMemo(() => slugCardBasic.getData());
   const cardNPCData = createMemo(() => slugCardNPC.getData());
@@ -111,17 +127,14 @@ export default function Cards() {
   ];
 
   const [showDetail, setShowDetail] = createSignal<boolean>(false);
-  const [detailCard, setDetailCard] = createSignal<SlugCard | null>(null);
+  const [detailCard, setDetailCard] = createSignal<SlugCard>(placeholderCard);
   return (
     <div class="w-screen h-screen overflow-y-scroll">
-      <OpacityTransition>
-        <Show when={showDetail() && detailCard() != null}>
-          <SlugCardDetail
-            data={detailCard() as SlugCard}
-            onClose={() => setShowDetail(false)}
-          ></SlugCardDetail>
-        </Show>
-      </OpacityTransition>
+      <SlugCardDetail
+        data={detailCard()}
+        onClose={() => setShowDetail(false)}
+        show={showDetail()}
+      ></SlugCardDetail>
       <main class="text-sky-200 font-usmcc-serif flex flex-col justify-center items-center z-0 pt-24">
         <Title>牌库 - 塔螺牌</Title>
 
@@ -190,8 +203,11 @@ function SlugCardThumb(props: { src: string; onClick: () => void; showing: boole
   return (
     <div
       class={[
-        "aspect-360/618 w-[calc(25%-0.5rem)] mx-1 sm:w-32 sm:mx-2 sm:my-2.5 overflow-hidden rounded-sm bg-[#c7c8b6] inline-block text-[0px] transition-[scale,rotate,opacity] duration-500 scale-100 opacity-100 ease-out origin-center cursor-pointer",
-        { "scale-110 opacity-0": props.showing },
+        "aspect-360/618 w-[calc(25%-0.5rem)] mx-1 my-0.5 sm:w-32 sm:mx-2 sm:my-2.5 overflow-hidden rounded-sm bg-[#c7c8b6] inline-block text-[0px] transition-[scale,rotate,opacity] duration-500 ease-out origin-center cursor-pointer",
+        {
+          "scale-110 opacity-50": props.showing,
+          "scale-100 opacity-100": !props.showing,
+        },
       ]}
       style={{ rotate: loaded() ? `${rotate()}deg` : "0deg" }}
       onClick={() => props.onClick()}
@@ -209,56 +225,56 @@ function SlugCardThumb(props: { src: string; onClick: () => void; showing: boole
   );
 }
 
-function OpacityTransition(props: { children?: JSX.Element }) {
-  const node = createMemo(() => {
-    const list = children(() => props.children)();
-    return list as HTMLElement;
-  });
-
-  const rendered = createSwitchTransition(node, {
-    mode: "out-in",
-    onEnter(el, done) {
-      queueMicrotask(() => {
-        el.animate([{ opacity: 0 }, { opacity: 1 }], 300)
-          .finished.then(done)
-          .catch(done);
-      });
-    },
-    onExit(el, done) {
-      el.animate([{ opacity: 1 }, { opacity: 0 }], 150)
-        .finished.then(done)
-        .catch(done);
-    },
-  });
-
-  return <>{rendered()}</>;
-}
-
-function SlugCardDetail(props: { data: SlugCard; onClose: () => void }) {
-  const fullImageLink = createMemo(() => cardBaseURL + props.data.img);
+function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: boolean }) {
+  const cardImage = createMemo(() => `url(${cardBaseURL + props.data.img})`);
   return (
-    <div class="fixed font-usmcc-serif text-sky-200 left-0 top-0 overflow-y-scroll sm:overflow-y-hidden w-screen h-screen backdrop-blur-2xl backdrop-brightness-75 flex flex-col justify-center items-center bg-[rgba(8,24,48,0.5)] z-90 sm:z-10 overscroll-none px-8 lg:px-0">
-      <div class="w-full lg:w-252 justify-center items-center flex flex-col sm:flex-row flex-nowrap relative">
-        <div class="aspect-360/618 w-3/4 sm:w-auto sm:h-96 lg:h-128 my-16 sm:my-0 mx-8 lg:mx-16 relative grow-0 shrink-0 overflow-hidden rounded-lg">
+    <div
+      id="card-detail-bg"
+      class={[
+        "fixed w-screen h-screen left-0 top-0 overflow-y-scroll sm:overflow-y-hidden sm:flex sm:flex-col justify-center items-center backdrop-blur-2xl backdrop-brightness-80 z-80 sm:z-40 transition-opacity duration-200",
+        {
+          "opacity-100 pointer-events-auto": props.show,
+          "opacity-0 pointer-events-none": !props.show,
+        },
+      ]}
+    >
+      <div
+        class={[
+          "w-full lg:w-252 sm:px-4 lg:px-0 justify-center items-center flex flex-col sm:flex-row flex-nowrap relative",
+        ]}
+      >
+        <div class="box-border grow-0 shrink-0 sm:px-12 lg:px-16">
           <div
-            class="w-full h-full bg-cover"
-            style={{
-              "background-image": `url(${fullImageLink()})`,
-            }}
-          ></div>
-        </div>
-        <div class="w-full sm:w-auto sm:h-full sm:grow text-left pt-8 px-4 sm:px-0">
-          <div>
-            <p class="text-4xl lg:text-5xl lg:pb-2">{props.data.name}</p>
-            <p class="text-xl font-sans italic">illust. {props.data.illust}</p>
+            class={[
+              "aspect-360/618 w-[calc(4rem+50vw)] sm:w-auto sm:h-96 lg:h-128 my-12 sm:my-0 relative overflow-hidden rounded-lg origin-center transition-[opacity,scale] duration-300 ease-out",
+              {
+                "opacity-100 scale-100": props.show,
+                "opacity-75 scale-75": !props.show,
+              },
+            ]}
+          >
+            <div
+              class="w-full h-full bg-cover"
+              style={{
+                "background-image": cardImage(),
+              }}
+            ></div>
           </div>
         </div>
-        <div class="flex flex-row justify-end w-full lg:w-252 sm:absolute mb-8 sm:mb-0 bottom-0 left-0">
+        <div class="font-usmcc-serif text-sky-200 w-full sm:w-auto sm:h-full sm:grow text-left pt-0 sm:pt-4 pb-4 sm:pb-0 lg:pt-8 px-8 sm:px-0">
+          <div>
+            <p class="text-4xl sm:text-5xl sm:pb-2">{props.data.name}</p>
+            <p class="text-xl font-sans text-sky-300 italic font-bold tracking-wider">
+              illust. {props.data.illust}
+            </p>
+          </div>
+        </div>
+        <div class="flex flex-row justify-end w-full lg:w-252 sm:absolute mb-8 sm:mb-0 pr-8 lg:pr-4 bottom-0 left-0">
           <div
-            class="text-2xl cursor-pointer px-5 py-3 border-sky-300 text-sky-300 hover:border-sky-200 hover:text-sky-200 transition-colors border-solid border-2 rounded-4xl"
+            class="font-usmcc-serif text-2xl tracking-wider cursor-pointer pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl"
             onClick={() => props.onClose()}
           >
-            关闭
+            返回
           </div>
         </div>
       </div>

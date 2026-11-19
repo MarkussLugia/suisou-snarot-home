@@ -78,10 +78,14 @@ export default function App() {
     <Router>
       {(props) => (
         <>
-          <nav class="font-usmcc-serif flex justify-center items-center fixed z-40 w-screen top-0 left-0 bg-linear-0 from-transparent via-[rgba(8,24,48,0.7)] to-[rgba(8,24,48,1)] to-90%">
+          <nav
+            id="nav"
+            class="font-usmcc-serif flex justify-center items-center fixed z-50 w-screen top-0 left-0"
+          >
             <NavTab href={paths.cards()} title="卡牌" />
             <NavTab href={paths.rules()} title="规则" />
           </nav>
+          <div id="nav-bg" class="w-screen h-24 top-0 left-0 fixed z-30"></div>
           <Loading fallback={<main class="px-4 py-12">Loading…</main>}>
             <RouteTransition>{props.children}</RouteTransition>
           </Loading>
