@@ -1,5 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { createMemo, createSignal, For, Loading, SourceAccessor } from "solid-js";
+import snarot_logo_laser from "/src/routes/snarot_logo_laser.png";
 
 /** 单张卡牌数据定义 */
 export interface SlugCard {
@@ -130,11 +131,7 @@ export default function Cards() {
   const [detailCard, setDetailCard] = createSignal<SlugCard>(placeholderCard);
   return (
     <div class="w-screen h-screen overflow-y-scroll">
-      <SlugCardDetail
-        data={detailCard()}
-        onClose={() => setShowDetail(false)}
-        show={showDetail()}
-      ></SlugCardDetail>
+      <SlugCardDetail data={detailCard()} onClose={() => setShowDetail(false)} show={showDetail()}></SlugCardDetail>
       <main class="text-sky-200 font-usmcc-serif flex flex-col justify-center items-center z-0 pt-24">
         <Title>牌库 - 塔螺牌</Title>
 
@@ -213,10 +210,7 @@ function SlugCardThumb(props: { src: string; onClick: () => void; showing: boole
       onClick={() => props.onClick()}
     >
       <img
-        class={[
-          "w-full transition-opacity duration-300",
-          { "opacity-100": loaded(), "opacity-0": !loaded() },
-        ]}
+        class={["w-full transition-opacity duration-300", { "opacity-100": loaded(), "opacity-0": !loaded() }]}
         src={props.src}
         onLoad={() => setLoaded(true)}
         loading="lazy"
@@ -225,11 +219,49 @@ function SlugCardThumb(props: { src: string; onClick: () => void; showing: boole
   );
 }
 
+const MAX_TILT_ANGLE = 15;
+
+function toTiltAngle(angle: number) {
+  const clamped = Math.min(MAX_TILT_ANGLE, Math.max(-MAX_TILT_ANGLE, -angle));
+  return Math.round(clamped * 100) / 100;
+}
+
 function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: boolean }) {
   const cardThumb = createMemo(() => `url(${cardBaseURL + props.data.thu})`);
   const cardImageEl = createMemo(() => {
     const img_url = cardBaseURL + props.data.img;
-    return <img class="h-full" src={img_url}></img>;
+    return <img class="h-full absolute left-0 top-0" src={img_url}></img>;
+  });
+
+  const [pointer, setPointer] = createSignal({ x: 0, y: 0 });
+  const [hueShift, setHueShift] = createSignal(0);
+  const [tiltRefHeight, setTiltRefHeight] = createSignal(0);
+  let tiltAreaEl: HTMLDivElement | undefined;
+
+  const handlePointerMove = (event: MouseEvent | Touch) => {
+    if (!tiltAreaEl) return;
+    const rect = tiltAreaEl.getBoundingClientRect();
+    console.log(rect.height);
+    setTiltRefHeight(rect.height);
+    const x = event.clientX - rect.left - rect.width / 2;
+    const y = event.clientY - rect.top - rect.height / 2;
+    setPointer({ x, y });
+    setHueShift((x * x + y * y) / 100);
+  };
+
+  const resetPointer = () => {
+    (setPointer({ x: 0, y: 0 }), setHueShift(0));
+  };
+
+  const tiltTransform = createMemo(() => {
+    let rotateX = 0;
+    let rotateY = 0;
+    const halfHeight = tiltRefHeight() / 2;
+    if (halfHeight > 0) {
+      rotateX = toTiltAngle((pointer().y / halfHeight) * MAX_TILT_ANGLE);
+      rotateY = toTiltAngle((-pointer().x / halfHeight) * MAX_TILT_ANGLE);
+    }
+    return `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
   });
   return (
     <div
@@ -247,23 +279,47 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
           "w-full lg:w-252 sm:px-4 lg:px-0 justify-center items-center flex flex-col sm:flex-row flex-nowrap relative",
         ]}
       >
-        <div class="box-border grow-0 shrink-0 sm:px-12 lg:px-16">
+        <div
+          id="card-image-outer-container"
+          ref={(el) => {
+            tiltAreaEl = el;
+          }}
+          class="box-border grow-0 shrink-0 sm:px-12 lg:px-16"
+          onMouseMove={handlePointerMove}
+          onMouseLeave={resetPointer}
+          onTouchStart={(e) => handlePointerMove(e.touches[0])}
+          onTouchMove={(e) => handlePointerMove(e.touches[0])}
+          onTouchEnd={resetPointer}
+        >
           <div
+            id="card-image-container"
             class={[
-              "aspect-360/618 w-[calc(4rem+40vw)] sm:w-auto sm:h-96 lg:h-128 my-10 sm:my-0 relative overflow-hidden rounded-lg origin-center transition-[opacity,scale] duration-300 ease-out",
+              "aspect-360/618 w-[calc(4rem+40vw)] sm:w-auto sm:h-96 lg:h-128 my-10 sm:my-0 relative overflow-hidden rounded-lg origin-center transition-[opacity,scale,transform] ease-out",
               {
                 "opacity-100 scale-100": props.show,
                 "opacity-75 scale-75": !props.show,
               },
             ]}
+            style={{
+              transform: props.show ? tiltTransform() : "none",
+              "transition-duration": "300ms, 300ms, 200ms",
+            }}
           >
             <div
-              class="w-full h-full bg-cover"
+              class="w-full h-full bg-cover relative"
               style={{
                 "background-image": cardThumb(),
                 "background-color": "#c7c8b6",
               }}
             >
+              <div
+                class="w-full h-full absolute left-0 top-0 bg-contain bg-no-repeat bg-center z-10 mix-blend-lighten"
+                style={{
+                  "background-image": `url(${snarot_logo_laser})`,
+                  filter: `hue-rotate(${hueShift()}deg)`,
+                  opacity: Math.sqrt(hueShift()) / 16 + 0.1,
+                }}
+              ></div>
               {cardImageEl()}
             </div>
           </div>
@@ -271,12 +327,10 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
         <div class="font-usmcc-serif text-sky-200 w-full sm:w-auto sm:h-full sm:grow text-left pt-0 sm:pt-4 pb-4 sm:pb-0 lg:pt-8 px-8 sm:px-0">
           <div>
             <p class="text-4xl sm:text-5xl sm:pb-2">{props.data.name}</p>
-            <p class="text-xl font-sans text-sky-300 italic font-bold tracking-wider">
-              illust. {props.data.illust}
-            </p>
+            <p class="text-xl font-sans text-sky-300 italic font-bold tracking-wider">illust. {props.data.illust}</p>
           </div>
         </div>
-        <div class="hidden sm:flex flex-row justify-end w-full lg:w-252 absolute pr-8 lg:pr-4 pb-2 lg:pb-4 bottom-0 left-0">
+        <div class="hidden sm:flex flex-row justify-end w-1/2 absolute pr-8 lg:pr-4 pb-2 lg:pb-4 bottom-0 right-0">
           <div
             class="cursor-pointer font-usmcc-serif text-2xl tracking-wider pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl"
             onClick={() => props.onClose()}
@@ -287,7 +341,7 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
       </div>
       <div class="flex sm:hidden flex-row justify-end w-full absolute pr-8 pb-6 bottom-0 left-0">
         <div
-          class="cursor-pointer font-usmcc-serif text-2xl tracking-wider pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl"
+          class="cursor-pointer font-usmcc-serif text-2xl tracking-wider pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl select-none"
           onClick={() => props.onClose()}
         >
           返回
