@@ -226,7 +226,7 @@ function SlugCardThumb(props: { src: string; onClick: () => void; showing: boole
 }
 
 function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: boolean }) {
-  const cardThumb = createMemo(() => `#c7c8b6,url(${cardBaseURL + props.data.thu})`);
+  const cardThumb = createMemo(() => `url(${cardBaseURL + props.data.thu})`);
   const cardImageEl = createMemo(() => {
     const img_url = cardBaseURL + props.data.img;
     return <img class="h-full" src={img_url}></img>;
@@ -261,6 +261,7 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
               class="w-full h-full bg-cover"
               style={{
                 "background-image": cardThumb(),
+                "background-color": "#c7c8b6",
               }}
             >
               {cardImageEl()}
