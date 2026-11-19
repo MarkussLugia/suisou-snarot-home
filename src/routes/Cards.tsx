@@ -235,22 +235,25 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
 
   const [pointer, setPointer] = createSignal({ x: 0, y: 0 });
   const [hueShift, setHueShift] = createSignal(0);
+  const [distance, setDistance] = createSignal(0);
   const [tiltRefHeight, setTiltRefHeight] = createSignal(0);
   let tiltAreaEl: HTMLDivElement | undefined;
 
   const handlePointerMove = (event: MouseEvent | Touch) => {
     if (!tiltAreaEl) return;
     const rect = tiltAreaEl.getBoundingClientRect();
-    console.log(rect.height);
     setTiltRefHeight(rect.height);
-    const x = event.clientX - rect.left - rect.width / 2;
-    const y = event.clientY - rect.top - rect.height / 2;
+    const x = Math.max(-rect.height / 2, Math.min(rect.height / 2, event.clientX - rect.left - rect.width / 2));
+    const y = Math.max(-rect.height / 2, Math.min(rect.height / 2, event.clientY - rect.top - rect.height / 2));
     setPointer({ x, y });
     setHueShift((x * x + y * y) / 100);
+    setDistance(Math.sqrt((x * x + y * y) / 100));
   };
 
   const resetPointer = () => {
-    (setPointer({ x: 0, y: 0 }), setHueShift(0));
+    setPointer({ x: 0, y: 0 });
+    setHueShift(0);
+    setDistance(0);
   };
 
   const tiltTransform = createMemo(() => {
@@ -294,7 +297,7 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
           <div
             id="card-image-container"
             class={[
-              "aspect-360/618 w-[calc(4rem+40vw)] sm:w-auto sm:h-96 lg:h-128 my-10 sm:my-0 relative overflow-hidden rounded-lg origin-center transition-[opacity,scale,transform] ease-out",
+              "aspect-360/618 w-[calc(4rem+40vw)] sm:w-auto sm:h-96 lg:h-128 my-10 sm:my-0 relative overflow-hidden rounded-lg origin-center transition-[opacity,scale,transform,box-shadow] ease-out",
               {
                 "opacity-100 scale-100": props.show,
                 "opacity-75 scale-75": !props.show,
@@ -302,7 +305,8 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
             ]}
             style={{
               transform: props.show ? tiltTransform() : "none",
-              "transition-duration": "300ms, 300ms, 200ms",
+              "transition-duration": "300ms, 300ms, 200ms, 200ms",
+              "box-shadow": `${-pointer().x / 96}px ${-pointer().y / 96}px 0 -0.2px #778, ${-pointer().x / 20 + 8}px ${-pointer().y / 20 + 12}px ${distance() * 2 + 40}px -12px rgba(0,10,20,${1 - distance() / 36})`,
             }}
           >
             <div
@@ -313,11 +317,18 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
               }}
             >
               <div
-                class="w-full h-full absolute left-0 top-0 bg-contain bg-no-repeat bg-center z-10 mix-blend-lighten"
+                class="w-full h-full absolute left-0 top-0 bg-contain bg-no-repeat bg-center z-20 mix-blend-lighten"
                 style={{
                   "background-image": `url(${snarot_logo_laser})`,
                   filter: `hue-rotate(${hueShift()}deg)`,
-                  opacity: Math.sqrt(hueShift()) / 16 + 0.1,
+                  opacity: distance() / 16 + 0.1,
+                }}
+              ></div>
+              <div
+                class="w-full h-full absolute left-0 top-0 bg-sky-950 z-10 transition-opacity"
+                style={{
+                  "transition-duration": "80ms",
+                  opacity: Math.max(0, distance() / 160 - 0.05),
                 }}
               ></div>
               {cardImageEl()}
