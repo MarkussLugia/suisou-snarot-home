@@ -235,7 +235,7 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
     <div
       id="card-detail-bg"
       class={[
-        "fixed w-screen h-screen left-0 top-0 overflow-y-scroll sm:overflow-y-hidden sm:flex sm:flex-col justify-center items-center backdrop-blur-2xl backdrop-brightness-80 z-80 sm:z-40 transition-opacity duration-200",
+        "fixed w-screen h-screen left-0 top-0 overflow-y-scroll sm:overflow-y-hidden sm:flex sm:flex-col justify-center items-center backdrop-blur-2xl backdrop-brightness-80 z-80 sm:z-40 transition-opacity duration-200 overscroll-none",
         {
           "opacity-100 pointer-events-auto": props.show,
           "opacity-0 pointer-events-none": !props.show,
@@ -250,7 +250,7 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
         <div class="box-border grow-0 shrink-0 sm:px-12 lg:px-16">
           <div
             class={[
-              "aspect-360/618 w-[calc(4rem+50vw)] sm:w-auto sm:h-96 lg:h-128 my-12 sm:my-0 relative overflow-hidden rounded-lg origin-center transition-[opacity,scale] duration-300 ease-out",
+              "aspect-360/618 w-[calc(4rem+40vw)] sm:w-auto sm:h-96 lg:h-128 my-10 sm:my-0 relative overflow-hidden rounded-lg origin-center transition-[opacity,scale] duration-300 ease-out",
               {
                 "opacity-100 scale-100": props.show,
                 "opacity-75 scale-75": !props.show,
@@ -276,13 +276,21 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
             </p>
           </div>
         </div>
-        <div class="flex flex-row justify-end w-full lg:w-252 sm:absolute mb-8 sm:mb-0 pr-8 lg:pr-4 bottom-0 left-0">
+        <div class="hidden sm:flex flex-row justify-end w-full lg:w-252 absolute pr-8 lg:pr-4 pb-2 lg:pb-4 bottom-0 left-0">
           <div
-            class="font-usmcc-serif text-2xl tracking-wider cursor-pointer pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl"
+            class="cursor-pointer font-usmcc-serif text-2xl tracking-wider pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl"
             onClick={() => props.onClose()}
           >
             返回
           </div>
+        </div>
+      </div>
+      <div class="flex sm:hidden flex-row justify-end w-full absolute pr-8 pb-6 bottom-0 left-0">
+        <div
+          class="cursor-pointer font-usmcc-serif text-2xl tracking-wider pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl"
+          onClick={() => props.onClose()}
+        >
+          返回
         </div>
       </div>
     </div>
