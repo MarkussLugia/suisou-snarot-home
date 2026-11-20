@@ -454,7 +454,7 @@ function SlugCardView(props: { data: SlugCard; show: boolean }) {
       Math.min(rect.height / 2, event.clientY - rect.top - rect.height / 2),
     );
     setPointer({ x, y });
-    setHueShift((x * x + y * y) / 100);
+    setHueShift((x * x - y * y) / 100);
     setDistance(Math.sqrt((x * x + y * y) / 100));
   };
 
@@ -512,11 +512,18 @@ function SlugCardView(props: { data: SlugCard; show: boolean }) {
           <div
             class="w-full h-full absolute left-0 top-0 bg-contain bg-no-repeat bg-center z-20 mix-blend-lighten"
             style={{
-              "background-image": `url(${snarot_logo_laser})`,
-              filter: `hue-rotate(${hueShift()}deg)`,
               opacity: distance() / 16 + 0.1,
             }}
-          ></div>
+          >
+            <div class="w-full h-full absolute left-0 top-0 z-30 bg-indigo-500 mix-blend-hue opacity-50"></div>
+            <div
+              class="w-full h-full absolute left-0 top-0 bg-contain bg-no-repeat bg-center z-20 bg-black"
+              style={{
+                "background-image": `url(${snarot_logo_laser})`,
+                filter: `hue-rotate(${hueShift()}deg)`,
+              }}
+            ></div>
+          </div>
           <div
             class="w-full h-full absolute left-0 top-0 bg-sky-950 z-10 transition-opacity"
             style={{
