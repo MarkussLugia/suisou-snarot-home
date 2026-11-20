@@ -252,8 +252,8 @@
       "clearAttack": false,
       "disable": false,
       "attackDraw": 6,
-      "attackDelay": 0,
-      "selfDraw": 3,
+      "attackDelay": 3,
+      "selfDraw": 0,
       "collapse": false
     },
     {

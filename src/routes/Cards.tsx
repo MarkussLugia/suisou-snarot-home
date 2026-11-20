@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { createMemo, createSignal, For, Loading, SourceAccessor } from "solid-js";
+import { createMemo, createSignal, Element, For, Loading, Show, SourceAccessor } from "solid-js";
 import snarot_logo_laser from "/src/routes/snarot_logo_laser.webp";
 
 /** 单张卡牌数据定义 */
@@ -131,7 +131,11 @@ export default function Cards() {
   const [detailCard, setDetailCard] = createSignal<SlugCard>(placeholderCard);
   return (
     <div class="w-screen h-screen overflow-y-scroll">
-      <SlugCardDetail data={detailCard()} onClose={() => setShowDetail(false)} show={showDetail()}></SlugCardDetail>
+      <SlugCardDetail
+        data={detailCard()}
+        onClose={() => setShowDetail(false)}
+        show={showDetail()}
+      ></SlugCardDetail>
       <main class="text-sky-200 font-usmcc-serif flex flex-col justify-center items-center z-0 pt-24">
         <Title>牌库 - 塔螺牌</Title>
 
@@ -210,12 +214,206 @@ function SlugCardThumb(props: { src: string; onClick: () => void; showing: boole
       onClick={() => props.onClick()}
     >
       <img
-        class={["w-full transition-opacity duration-300", { "opacity-100": loaded(), "opacity-0": !loaded() }]}
+        class={[
+          "w-full transition-opacity duration-300",
+          { "opacity-100": loaded(), "opacity-0": !loaded() },
+        ]}
         src={props.src}
         onLoad={() => setLoaded(true)}
         loading="lazy"
       ></img>
     </div>
+  );
+}
+
+const colorTextMap = {
+  r: "红色",
+  g: "绿色",
+  b: "蓝色",
+  y: "黄色",
+  u: "",
+  s: "",
+  n: "",
+};
+
+function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: boolean }) {
+  return (
+    <>
+      <div
+        id="card-detail-bg"
+        class={[
+          "fixed w-screen h-screen left-0 top-0 overflow-y-scroll sm:overflow-y-hidden sm:flex sm:flex-col justify-center items-center backdrop-blur-2xl backdrop-brightness-80 z-80 sm:z-40 transition-opacity duration-200 overscroll-none",
+          {
+            "opacity-100 pointer-events-auto": props.show,
+            "opacity-0 pointer-events-none": !props.show,
+          },
+        ]}
+      >
+        <div
+          class={[
+            "w-full lg:w-252 sm:px-4 lg:px-0 justify-center items-center flex flex-col sm:flex-row flex-nowrap relative",
+          ]}
+        >
+          <SlugCardView data={props.data} show={props.show} />
+          <div class="font-usmcc-serif text-sky-200 w-full sm:w-auto sm:grow sm:max-h-[80vh] sm:overflow-y-scroll text-left pt-0 sm:pt-4 lg:pt-8 pb-4 sm:pb-0 px-8 sm:px-2">
+            <div>
+              <p class="text-4xl sm:text-5xl sm:pb-2">{props.data.name}</p>
+              <p class="text-xl font-sans text-sky-300 italic font-bold tracking-wider">
+                illust. {props.data.illust}
+              </p>
+            </div>
+            <div class="w-full mt-3 pb-20 text-xl">
+              <Show when={props.data.desc}>
+                <p class="mt-4">{props.data.desc}</p>
+              </Show>
+              <Show
+                when={
+                  props.data.applyColor != "u" && props.data.updateColor === props.data.applyColor
+                }
+              >
+                <DetailEffect
+                  title={
+                    (props.data.number != 0 ? `数字 ${props.data.number}，` : "") +
+                    colorTextMap[props.data.applyColor]
+                  }
+                >
+                  <span>
+                    {props.data.clearAttack && "除可反制的情况外，"}此卡牌只能在场地
+                    {props.data.number != 0 && `数字为 ${props.data.number} 或`}颜色为
+                    {colorTextMap[props.data.applyColor]}时打出。
+                    {props.data.number != 0 && (
+                      <span>
+                        <br />
+                        打出后，场地数字和颜色更新为 {props.data.number} 和
+                        {colorTextMap[props.data.updateColor]}。
+                      </span>
+                    )}
+                  </span>
+                </DetailEffect>
+              </Show>
+              <Show
+                when={
+                  props.data.updateColor != "s" &&
+                  props.data.updateColor != "n" &&
+                  props.data.applyColor === "u"
+                }
+              >
+                <DetailEffect title={"转色（" + colorTextMap[props.data.updateColor] + "）"}>
+                  <span>打出后，场地颜色更新为{colorTextMap[props.data.updateColor]}。</span>
+                </DetailEffect>
+              </Show>
+              <Show
+                when={
+                  props.data.updateColor === "s" &&
+                  props.data.applyColor === "u" &&
+                  props.data.number === 0
+                }
+              >
+                <DetailEffect title="选色">
+                  <span>打出后，场地颜色更新为玩家指定的颜色。</span>
+                </DetailEffect>
+              </Show>
+              <Show when={props.data.attackDraw > 0}>
+                <DetailEffect
+                  title={
+                    "抽卡预言（" +
+                    `+${props.data.attackDraw}` +
+                    `${props.data.attackDelay > 0 ? "，延迟 " + props.data.attackDelay : ""}` +
+                    `${props.data.selfDraw > 0 ? "，Self+" + props.data.selfDraw : ""}` +
+                    "）"
+                  }
+                >
+                  {props.data.attackDelay === 0 ? (
+                    <span>打出后，下一位玩家立即抽取 {props.data.attackDraw} 张牌。</span>
+                  ) : (
+                    <span>
+                      打出后，下一位玩家被附加 +{props.data.attackDraw} 抽卡预言，
+                      {props.data.attackDelay} 回合后生效。
+                    </span>
+                  )}
+                  {props.data.selfDraw > 0 && (
+                    <span>
+                      <br />
+                      打出时，自己也要抽 {props.data.selfDraw} 张牌。
+                    </span>
+                  )}
+                </DetailEffect>
+              </Show>
+              <Show when={props.data.clearAttack}>
+                <DetailEffect title="反制">
+                  <span>
+                    打出后，清除自身被附加的抽卡预言。在巨塔崩塌时打出，可以免除自己本回合的崩塌抽卡。
+                  </span>
+                  {props.data.applyColor != "u" && (
+                    <span>
+                      <br />
+                      自身被附加抽卡预言，或巨塔正在崩塌时，此卡牌可以无视场地颜色打出。
+                    </span>
+                  )}
+                </DetailEffect>
+              </Show>
+              <Show when={props.data.reverse}>
+                <DetailEffect title="反转">
+                  <span>打出后，反转接下来的出牌顺序。</span>
+                </DetailEffect>
+              </Show>
+              <Show when={props.data.disable}>
+                <DetailEffect title="禁止">
+                  <span>
+                    打出后，{props.data.reverse && "以反转后的新顺序，"}下一位玩家的回合被跳过一次。
+                  </span>
+                </DetailEffect>
+              </Show>
+              <Show when={props.data.collapse}>
+                <DetailEffect title="塔">
+                  <span>打出后，巨塔开始崩塌。</span>
+                </DetailEffect>
+              </Show>
+              <Show when={props.data.addToTower}>
+                <DetailEffect title="化塔">
+                  <span>打出后，此卡牌被移动到高塔牌堆，而不是弃牌堆。</span>
+                </DetailEffect>
+              </Show>
+            </div>
+          </div>
+          <div class="hidden sm:block absolute pr-6 lg:pr-2 pb-2 lg:pb-4 bottom-0 right-0">
+            <div
+              class="cursor-pointer font-usmcc-serif text-2xl tracking-wider pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl select-none"
+              onClick={() => props.onClose()}
+            >
+              返回
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        id="return-button-mobile"
+        class={[
+          "block sm:hidden fixed bottom-0 right-0 z-90 pl-12 pr-8 py-6 transition-opacity bg-radial",
+          {
+            "opacity-100 pointer-events-auto": props.show,
+            "opacity-0 pointer-events-none": !props.show,
+          },
+        ]}
+      >
+        <div
+          class="cursor-pointer font-usmcc-serif text-2xl tracking-wider pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl select-none"
+          onClick={() => props.onClose()}
+        >
+          返回
+        </div>
+      </div>
+    </>
+  );
+}
+
+function DetailEffect(props: { children: Element | Element[]; title: string }) {
+  return (
+    <p class="mt-4">
+      <span class="text-2xl text-sky-100">{props.title}</span>
+      <br />
+      {props.children}
+    </p>
   );
 }
 
@@ -226,7 +424,7 @@ function toTiltAngle(angle: number) {
   return Math.round(clamped * 100) / 100;
 }
 
-function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: boolean }) {
+function SlugCardView(props: { data: SlugCard; show: boolean }) {
   const cardThumb = createMemo(() => `url(${cardBaseURL + props.data.thu})`);
   const cardImageEl = createMemo(() => {
     const img_url = cardBaseURL + props.data.img;
@@ -239,12 +437,22 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
   const [tiltRefHeight, setTiltRefHeight] = createSignal(0);
   let tiltAreaEl: HTMLDivElement | undefined;
 
+  const handleTouch = (event: TouchEvent) => {
+    event.stopPropagation();
+    handlePointerMove(event.touches[0]);
+  };
   const handlePointerMove = (event: MouseEvent | Touch) => {
     if (!tiltAreaEl) return;
     const rect = tiltAreaEl.getBoundingClientRect();
     setTiltRefHeight(rect.height);
-    const x = Math.max(-rect.height / 2, Math.min(rect.height / 2, event.clientX - rect.left - rect.width / 2));
-    const y = Math.max(-rect.height / 2, Math.min(rect.height / 2, event.clientY - rect.top - rect.height / 2));
+    const x = Math.max(
+      -rect.height / 2,
+      Math.min(rect.height / 2, event.clientX - rect.left - rect.width / 2),
+    );
+    const y = Math.max(
+      -rect.height / 2,
+      Math.min(rect.height / 2, event.clientY - rect.top - rect.height / 2),
+    );
     setPointer({ x, y });
     setHueShift((x * x + y * y) / 100);
     setDistance(Math.sqrt((x * x + y * y) / 100));
@@ -268,94 +476,55 @@ function SlugCardDetail(props: { data: SlugCard; onClose: () => void; show: bool
   });
   return (
     <div
-      id="card-detail-bg"
-      class={[
-        "fixed w-screen h-screen left-0 top-0 overflow-y-scroll sm:overflow-y-hidden sm:flex sm:flex-col justify-center items-center backdrop-blur-2xl backdrop-brightness-80 z-80 sm:z-40 transition-opacity duration-200 overscroll-none",
-        {
-          "opacity-100 pointer-events-auto": props.show,
-          "opacity-0 pointer-events-none": !props.show,
-        },
-      ]}
+      id="card-image-outer-container"
+      ref={(el) => {
+        tiltAreaEl = el;
+      }}
+      class="box-border grow-0 shrink-0 w-full sm:w-auto sm:px-12 lg:px-16 overscroll-none touch-none"
+      onMouseMove={handlePointerMove}
+      onMouseLeave={resetPointer}
+      onTouchStart={handleTouch}
+      onTouchMove={handleTouch}
+      onTouchEnd={resetPointer}
     >
       <div
+        id="card-image-container"
         class={[
-          "w-full lg:w-252 sm:px-4 lg:px-0 justify-center items-center flex flex-col sm:flex-row flex-nowrap relative",
+          "relative aspect-360/618 w-[calc(4rem+40vw)] sm:w-auto sm:h-96 lg:h-128 mx-auto my-10 sm:my-2 overflow-hidden rounded-lg origin-center transition-[opacity,scale,transform,box-shadow] ease-out",
+          {
+            "opacity-100 scale-100": props.show,
+            "opacity-75 scale-75": !props.show,
+          },
         ]}
+        style={{
+          transform: props.show ? tiltTransform() : "none",
+          "transition-duration": "300ms, 300ms, 200ms, 200ms",
+          "box-shadow": `${-pointer().x / 96}px ${-pointer().y / 96}px 0 -0.2px #778, ${-pointer().x / 20 + 8}px ${-pointer().y / 20 + 12}px ${distance() * 2 + 40}px -12px rgba(0,10,20,${1 - distance() / 36})`,
+        }}
       >
         <div
-          id="card-image-outer-container"
-          ref={(el) => {
-            tiltAreaEl = el;
+          class="w-full h-full bg-cover relative"
+          style={{
+            "background-image": cardThumb(),
+            "background-color": "#c7c8b6",
           }}
-          class="box-border grow-0 shrink-0 sm:px-12 lg:px-16"
-          onMouseMove={handlePointerMove}
-          onMouseLeave={resetPointer}
-          onTouchStart={(e) => handlePointerMove(e.touches[0])}
-          onTouchMove={(e) => handlePointerMove(e.touches[0])}
-          onTouchEnd={resetPointer}
         >
           <div
-            id="card-image-container"
-            class={[
-              "aspect-360/618 w-[calc(4rem+40vw)] sm:w-auto sm:h-96 lg:h-128 my-10 sm:my-0 relative overflow-hidden rounded-lg origin-center transition-[opacity,scale,transform,box-shadow] ease-out",
-              {
-                "opacity-100 scale-100": props.show,
-                "opacity-75 scale-75": !props.show,
-              },
-            ]}
+            class="w-full h-full absolute left-0 top-0 bg-contain bg-no-repeat bg-center z-20 mix-blend-lighten"
             style={{
-              transform: props.show ? tiltTransform() : "none",
-              "transition-duration": "300ms, 300ms, 200ms, 200ms",
-              "box-shadow": `${-pointer().x / 96}px ${-pointer().y / 96}px 0 -0.2px #778, ${-pointer().x / 20 + 8}px ${-pointer().y / 20 + 12}px ${distance() * 2 + 40}px -12px rgba(0,10,20,${1 - distance() / 36})`,
+              "background-image": `url(${snarot_logo_laser})`,
+              filter: `hue-rotate(${hueShift()}deg)`,
+              opacity: distance() / 16 + 0.1,
             }}
-          >
-            <div
-              class="w-full h-full bg-cover relative"
-              style={{
-                "background-image": cardThumb(),
-                "background-color": "#c7c8b6",
-              }}
-            >
-              <div
-                class="w-full h-full absolute left-0 top-0 bg-contain bg-no-repeat bg-center z-20 mix-blend-lighten"
-                style={{
-                  "background-image": `url(${snarot_logo_laser})`,
-                  filter: `hue-rotate(${hueShift()}deg)`,
-                  opacity: distance() / 16 + 0.1,
-                }}
-              ></div>
-              <div
-                class="w-full h-full absolute left-0 top-0 bg-sky-950 z-10 transition-opacity"
-                style={{
-                  "transition-duration": "80ms",
-                  opacity: Math.max(0, distance() / 160 - 0.05),
-                }}
-              ></div>
-              {cardImageEl()}
-            </div>
-          </div>
-        </div>
-        <div class="font-usmcc-serif text-sky-200 w-full sm:w-auto sm:h-full sm:grow text-left pt-0 sm:pt-4 pb-4 sm:pb-0 lg:pt-8 px-8 sm:px-0">
-          <div>
-            <p class="text-4xl sm:text-5xl sm:pb-2">{props.data.name}</p>
-            <p class="text-xl font-sans text-sky-300 italic font-bold tracking-wider">illust. {props.data.illust}</p>
-          </div>
-        </div>
-        <div class="hidden sm:flex flex-row justify-end w-1/2 absolute pr-8 lg:pr-4 pb-2 lg:pb-4 bottom-0 right-0">
+          ></div>
           <div
-            class="cursor-pointer font-usmcc-serif text-2xl tracking-wider pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl"
-            onClick={() => props.onClose()}
-          >
-            返回
-          </div>
-        </div>
-      </div>
-      <div class="flex sm:hidden flex-row justify-end w-full absolute pr-8 pb-6 bottom-0 left-0">
-        <div
-          class="cursor-pointer font-usmcc-serif text-2xl tracking-wider pl-4 pr-2 pb-2 pt-2 border-transparent border-b-sky-300 text-sky-300 hover:border-b-sky-200 hover:text-sky-200 transition-colors border-solid border-b-6 border-l rounded-bl-[2.4rem] rounded-br-sm rounded-tl-4xl select-none"
-          onClick={() => props.onClose()}
-        >
-          返回
+            class="w-full h-full absolute left-0 top-0 bg-sky-950 z-10 transition-opacity"
+            style={{
+              "transition-duration": "80ms",
+              opacity: Math.max(0, distance() / 160 - 0.05),
+            }}
+          ></div>
+          {cardImageEl()}
         </div>
       </div>
     </div>
